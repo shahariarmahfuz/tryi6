@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input[type="text"], input[type="email"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .user-list {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Add User</h2>
+    <form id="add-user-form">
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" required>
+        </div>
+        <div class="form-group">
+            <label for="age">Age</label>
+            <input type="number" id="age" required>
+        </div>
+        <button type="submit">Add User</button>
+    </form>
+
+    <h2>Search Users</h2>
+    <input type="text" id="search-query" placeholder="Search by name">
+    <button onclick="searchUsers()">Search</button>
+
+    <div class="user-list" id="user-list">
+        <h3>All Users</h3>
+        <ul id="users"></ul>
+    </div>
+</div>
+
+<script>
+    const addUserForm = document.getElementById('add-user-form');
+    const userList = document.getElementById('users');
+
+    addUserForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const age = document.getElementById('age').value;
+
+        const response = await fetch('/add', {
+            method: 'POST',
+            body: new URLSearchParams({
+                name,
+                email,
+                age
+            }),
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+
+        const data = await response.json();
+        if (data.message) {
+            alert(data.message);
+            fetchUsers();  // Reload user list
+        } else {
+            alert(data.error);
+        }
+    });
+
+    async function fetchUsers() {
+        const response = await fetch('/users');
+        const data = await response.json();
+        userList.innerHTML = '';
+        data.forEach(user => {
+            const li = document.createElement('li');
+            li.textContent = `${user.name} | ${user.email} | ${user.age}`;
+            userList.appendChild(li);
+        });
+    }
+
+    async function searchUsers() {
+        const query = document.getElementById('search-query').value;
+        const response = await fetch(`/search?query=${query}`);
+        const data = await response.json();
+        userList.innerHTML = '';
+        data.forEach(user => {
+            const li = document.createElement('li');
+            li.textContent = `${user.name} | ${user.email} | ${user.age}`;
+            userList.appendChild(li);
+        });
+    }
+
+    // Initial fetch of users
+    fetchUsers();
+</script>
+
+</body>
+</html>
